@@ -16,14 +16,14 @@ type ClientConfig struct {
 	AuthMethod string
 	VerifySSL  bool
 	Client     *http.Client
-	Transport  *http.Transport
+	Transport  http.RoundTripper
 }
 
 // Client is a client for interacting with Artifactory
 type Client struct {
 	Client    *http.Client
 	Config    *ClientConfig
-	Transport *http.Transport
+	Transport  http.RoundTripper
 }
 
 // NewClientFromEnv returns a new ArtifactoryClient the is automatically configured from environment variables
@@ -46,7 +46,9 @@ func NewClient(config *ClientConfig) Client {
 	if config.Transport == nil {
 		config.Transport = &http.Transport{}
 	}
-	config.Transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: verifySSL()}
+	if transport, ok := config.Transport.(*http.Transport); ok {
+        transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: verifySSL()}
+    }
 	if config.Client == nil {
 		config.Client = &http.Client{}
 	}
